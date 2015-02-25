@@ -48,7 +48,6 @@ class Smtp
         
         $this->Put("DATA");
         $this->Put($this->toHeader($to, $subject));
-        $this->Put("\r\n");
         $this->Put($msg);
         $this->Put(".");
         if(!$this->wRecv("250"))return true; // ok  354 tbm eh true (<- 354 End data with <CR><LF>.<CR><LF>)
@@ -72,16 +71,14 @@ class Smtp
 
     function toHeader($to, $subject)
     {
-        $header = "Message-Id: <". date('YmdHis').".". md5(microtime()).".". strtoupper($this->from) ."> \r\n";
+        $header = "Message-Id: <". date('YmdHis').".". md5(microtime())."@". $this->nome ."> \r\n";
         $header .= "From: \"{$this->nome}\" ".$this->from."\r\n";
         $header .= "To: <".$to.">\r\n";
         $header .= "Subject: ".$subject."\r\n";
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
 	$header .= "X-Mailer: PHPMail\r\n";
-        $header .= "Content-Type: Text/HTML; charset=\"UTF-8\"\r\n"; //charset=us-ascii
-	$header .= "Content-Transfer-Encoding: 7bit\r\n";
-	$header .= "Content-Language: pt-br\r\n";
+        $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
         return $header;
     }
 
@@ -166,9 +163,10 @@ function send_mail($to, $subject, $msg)
     //If 3 servers is down
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
     $headers = "From: ".$smtp->from."\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
-    $headers .= "Content-Type: Text/HTML";
+    $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
+    $header .= "MIME-Version: 1.0\r\n";
+    $header .= "X-Mailer: PHPMail\r\n";
+    $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
     @mail($to, $subject, $msg, $headers);
     return false;
 }
