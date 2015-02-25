@@ -78,7 +78,10 @@ class Smtp
         $header .= "Subject: ".$subject."\r\n";
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
-        $header .= "Content-Type: Text/HTML";
+		$header .= "X-Mailer: PHPMail\r\n";
+        $header .= "Content-Type: Text/HTML; charset=\"UTF-8\"\r\n"; //charset=us-ascii
+		$header .= "Content-Transfer-Encoding: 7bit\r\n";
+		$header .= "Content-Language: pt-br\r\n";
         return $header;
     }
 
