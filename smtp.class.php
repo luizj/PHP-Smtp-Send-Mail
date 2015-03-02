@@ -91,9 +91,14 @@ class Smtp
             if($this->debug)echo "<- ".$c;
             if(substr($c,0, 3) == $cod)
             {
-                //Addons
-                if(substr($c,4, 4) == "AUTH")$this->auth = true;
-                $ret = true;
+                if($cod == "250"){//Addons
+			if(substr($c,4, 4) == "AUTH")$this->auth = true;
+		}
+		if($cod == "220"){//EHLO
+			$exp = explode(" ", $c);
+			$this->host = $exp[1];
+		}
+		$ret = true;
             }
             if(substr($c,3, 1) != "-")return $ret;
         }
