@@ -167,7 +167,7 @@ function send_mail($to, $subject, $msg)
 
     //If 3 servers ndown
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
-    $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
+    $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
     $header .= "From: \"{$smtp->name}\" <".$smtp->from.">\n";
     $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
     $header .= "MIME-Version: 1.0\r\n";
