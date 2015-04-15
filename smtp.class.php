@@ -11,8 +11,8 @@ class Smtp
     var $serv2 = "smtp.mail2.com";
     var $serv3 = "smtp.mail3.com";
  
-    var $hostname  = "mail.com";
-    var $from  = "<your@mail.com>";
+    var $name  = "MyServiceName";
+    var $from  = "your@mail.com";
     var $user  = "your@mail.com";
     var $pass  = "pass";
 
@@ -40,7 +40,7 @@ class Smtp
             if(!$this->wRecv("235"))return false; // authenticated
         }
         
-        $this->Put("MAIL FROM: ".$this->from);
+        $this->Put("MAIL FROM: <".$this->from.">");
         if(!$this->wRecv("250"))return false; // ok
 
         $this->Put("RCPT TO: <".$to.">");
@@ -71,8 +71,8 @@ class Smtp
 
     function toHeader($to, $subject)
     {
-        $header = "Message-Id: <". date('YmdHis').".". md5(microtime())."@". $this->hostname ."> \r\n";
-        $header .= "From: \"{$this->hostname}\" ".$this->from."\r\n";
+        $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
+        $header .= "From: \"{$this->name}\" <".$this->from.">\r\n";
         $header .= "To: <".$to.">\r\n";
         $header .= "Subject: ".$subject."\r\n";
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
@@ -167,12 +167,13 @@ function send_mail($to, $subject, $msg)
 
     //If 3 servers ndown
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
-    $headers = "From: ".$smtp->from."\n";
+    $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
+    $header .= "From: \"{$smtp->name}\" <".$smtp->from.">\n";
     $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
     $header .= "MIME-Version: 1.0\r\n";
     $header .= "X-Mailer: PHPMail\r\n";
     $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
-    @mail($to, $subject, $msg, $headers);
+    @mail($to, $subject, $msg, $header);
     return false;
 }
 
