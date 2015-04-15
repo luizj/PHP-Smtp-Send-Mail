@@ -11,7 +11,7 @@ class Smtp
     var $serv2 = "smtp.mail2.com";
     var $serv3 = "smtp.mail3.com";
  
-    var $nome  = "mail.com";
+    var $hostname  = "mail.com";
     var $from  = "<your@mail.com>";
     var $user  = "your@mail.com";
     var $pass  = "pass";
@@ -71,8 +71,8 @@ class Smtp
 
     function toHeader($to, $subject)
     {
-        $header = "Message-Id: <". date('YmdHis').".". md5(microtime())."@". $this->nome ."> \r\n";
-        $header .= "From: \"{$this->nome}\" ".$this->from."\r\n";
+        $header = "Message-Id: <". date('YmdHis').".". md5(microtime())."@". $this->hostname ."> \r\n";
+        $header .= "From: \"{$this->hostname}\" ".$this->from."\r\n";
         $header .= "To: <".$to.">\r\n";
         $header .= "Subject: ".$subject."\r\n";
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
@@ -165,7 +165,7 @@ function send_mail($to, $subject, $msg)
         }
     }
 
-    //If 3 servers is down
+    //If 3 servers ndown
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
     $headers = "From: ".$smtp->from."\n";
     $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
