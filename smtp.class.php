@@ -165,7 +165,7 @@ function send_mail($to, $subject, $msg)
         }
     }
 
-    //If 3 servers ndown
+    //If 3 servers down
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
     $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
     $header .= "From: \"{$smtp->name}\" <".$smtp->from.">\n";
