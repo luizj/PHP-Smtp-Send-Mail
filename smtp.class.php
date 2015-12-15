@@ -1,6 +1,6 @@
 <?
 error_reporting(15);
-set_time_limit(10);
+set_time_limit(0);
 
 class Smtp
 {
@@ -53,29 +53,14 @@ class Smtp
         $this->Put(".");
         if(!$this->wRecv("250"))return true; // ok  354 tbm eh true (<- 354 End data with <CR><LF>.<CR><LF>)
         $this->Close();
-        //if(isset($this->conn)){
-            return true;
-        //}else{
-        //    return false;
-        //}
-    }
-
-    function Put($value)
-    {
-        if($this->debug)
-        {
-            echo "-> ".$value."\x0D\x0A";
-        }
-        return fputs($this->conn, $value . "\r\n");
-
+        return true;
     }
 
     function startTLS()
     {
         if (!$this->TLS)return false;
-
-		$this->Put("STARTTLS");
-		if(!$this->wRecv("220"))return false; //HELLO
+	$this->Put("STARTTLS");
+	if(!$this->wRecv("220"))return false; //HELLO
 
         // Begin encrypted connection
         if (!stream_socket_enable_crypto(
@@ -99,6 +84,16 @@ class Smtp
 	$header .= "X-Mailer: PHPMail\r\n";
         $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
         return $header;
+    }
+    
+    function Put($value)
+    {
+        if($this->debug)
+        {
+            echo "-> ".$value."\x0D\x0A";
+        }
+        return fputs($this->conn, $value."\r\n");
+
     }
 
     function wRecv($cod)
