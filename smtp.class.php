@@ -4,21 +4,20 @@ set_time_limit(0);
 
 class Smtp
 {
-    var $conn;
-    var $host;
-
-    var $serv1 = "smtp.mail1.com";
-    var $serv2 = "smtp.mail2.com";
-    var $serv3 = "smtp.mail3.com";
+    var $serv  = "smtp.mail1.com";
  
     var $name  = "MyServiceName";
     var $from  = "your@mail.com";
     var $user  = "your@mail.com";
     var $pass  = "pass";
 
+    //Addons
     var $debug = false;
+    var $use_tls = false;
     
-    //Addons (No Change)
+    //Don't touch
+    var $conn;
+    var $host;
     var $auth = false;
     var $TLS = false;
 
@@ -28,7 +27,8 @@ class Smtp
         $this->Put("EHLO <".$this->host.">");
         if(!$this->wRecv("250"))return false; //HELLO
         
-        //$this->startTLS();
+        if($this->use_tls)$this->startTLS();
+        
         if($this->auth)
         {
             $this->Put("AUTH LOGIN");
@@ -138,8 +138,8 @@ function send_mail($to, $subject, $msg)
 {
     $smtp = new Smtp();
 
-    //Server 1
-    $smtp->conn = @fsockopen($smtp->serv1, 25, $errno, $errstr, 5);
+    //Server
+    $smtp->conn = @fsockopen($smtp->serv, 25, $errno, $errstr, 5);
     if($smtp->conn)
     {
         if($smtp->debug)echo "Connect 1"."\x0D\x0A";
@@ -151,33 +151,7 @@ function send_mail($to, $subject, $msg)
         }
     }
 
-    //Server 2
-    $smtp->conn = @fsockopen($smtp->serv2, 25, $errno, $errstr, 5);
-    if($smtp->conn)
-    {
-        if($smtp->debug)echo "Connect 2"."\x0D\x0A";
-        if(!$smtp->Send($to, $subject, $msg))
-        {
-            if($smtp->debug)echo "2 Fail"."\x0D\x0A";
-        }else{
-            return true;
-        }
-    }
-    
-    //Server 3
-    $smtp->conn = @fsockopen($smtp->serv3, 25, $errno, $errstr, 5);
-    if($smtp->conn)
-    {
-        if($smtp->debug)echo "Connect 3"."\x0D\x0A";
-        if(!$smtp->Send($to, $subject, $msg))
-        {
-            if($smtp->debug)echo "3 Fail"."\x0D\x0A";
-        }else{
-            return true;
-        }
-    }
-
-    //If 3 servers down
+    //If server down
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
     $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
     $header .= "From: \"{$smtp->name}\" <".$smtp->from.">\n";
