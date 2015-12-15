@@ -20,14 +20,15 @@ class Smtp
     
     //Addons (No Change)
     var $auth = false;
+    var $TLS = false;
 
     function Send($to, $subject, $msg)
     {
         if(!$this->wRecv("220"))return false; //INIT
-
         $this->Put("EHLO <".$this->host.">");
         if(!$this->wRecv("250"))return false; //HELLO
-
+        
+        //$this->startTLS();
         if($this->auth)
         {
             $this->Put("AUTH LOGIN");
@@ -69,6 +70,24 @@ class Smtp
 
     }
 
+    function startTLS()
+    {
+        if (!$this->TLS)return false;
+
+		$this->Put("STARTTLS");
+		if(!$this->wRecv("220"))return false; //HELLO
+
+        // Begin encrypted connection
+        if (!stream_socket_enable_crypto(
+            $this->conn,
+            true,
+            STREAM_CRYPTO_METHOD_TLS_CLIENT
+        )){
+            return false;
+        }
+        return true;
+    }
+    
     function toHeader($to, $subject)
     {
         $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
@@ -92,11 +111,12 @@ class Smtp
             if(substr($c,0, 3) == $cod)
             {
                 if($cod == "250"){//Addons
-			if(substr($c,4, 4) == "AUTH")$this->auth = true;
+			if(substr($c,4, 10) == "AUTH LOGIN")$this->auth = true;
+			if(substr($c,4, 8)  == "STARTTLS")  $this->TLS  = true;
 		}
 		if($cod == "220"){//EHLO
 			$exp = explode(" ", $c);
-			$this->host = $exp[1];
+			$this->host = trim($exp[1]);
 		}
 		$ret = true;
             }
@@ -124,8 +144,7 @@ function send_mail($to, $subject, $msg)
     $smtp = new Smtp();
 
     //Server 1
-    $smtp->host = $smtp->serv1;
-    $smtp->conn = @fsockopen($smtp->host, 25, $errno, $errstr, 5);
+    $smtp->conn = @fsockopen($smtp->serv1, 25, $errno, $errstr, 5);
     if($smtp->conn)
     {
         if($smtp->debug)echo "Connect 1"."\x0D\x0A";
@@ -138,8 +157,7 @@ function send_mail($to, $subject, $msg)
     }
 
     //Server 2
-    $smtp->host = $smtp->serv2;
-    $smtp->conn = @fsockopen($smtp->host, 25, $errno, $errstr, 5);
+    $smtp->conn = @fsockopen($smtp->serv2, 25, $errno, $errstr, 5);
     if($smtp->conn)
     {
         if($smtp->debug)echo "Connect 2"."\x0D\x0A";
@@ -152,8 +170,7 @@ function send_mail($to, $subject, $msg)
     }
     
     //Server 3
-    $smtp->host = $smtp->serv3;
-    $smtp->conn = @fsockopen($smtp->host, 25, $errno, $errstr, 5);
+    $smtp->conn = @fsockopen($smtp->serv3, 25, $errno, $errstr, 5);
     if($smtp->conn)
     {
         if($smtp->debug)echo "Connect 3"."\x0D\x0A";
