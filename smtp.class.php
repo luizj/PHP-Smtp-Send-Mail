@@ -79,7 +79,6 @@ class Smtp
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
         $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
-        $header .= "\r\n";
         return $header;
     }
 
