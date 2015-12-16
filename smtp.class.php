@@ -79,15 +79,13 @@ class Smtp
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
         $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
+        $header .= "\r\n";
         return $header;
     }
 
     function Put($value)
     {
-        if($this->debug)
-        {
-            echo "-> ".$value."\x0D\x0A";
-        }
+        if($this->debug)echo "-> ".$value."\x0D\x0A";
         return fputs($this->conn, $value."\r\n");
     }
 
