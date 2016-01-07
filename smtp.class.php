@@ -74,7 +74,7 @@ class Smtp
         $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
         $header .= "From: \"{$this->name}\" <".$this->from.">\r\n";
         $header .= "To: <".$to.">\r\n";
-        $header .= "Subject: ".$subject."\r\n";
+        $header .= "Subject: ".mb_encode_mimeheader($subject,"UTF-8")."\r\n";
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
