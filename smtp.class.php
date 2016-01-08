@@ -1,4 +1,7 @@
 <?
+/*
+ * https://github.com/luizj/PHP-Smtp-Send-Mail/blob/master/smtp.class.php
+ */
 error_reporting(15);
 set_time_limit(0);
 
