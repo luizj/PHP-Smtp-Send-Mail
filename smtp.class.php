@@ -20,15 +20,16 @@ class Smtp
     var $host;
     var $auth = false;
     var $TLS = false;
-
+	var $boundary;
+	
     function Send($to, $subject, $msg)
     {
-        if(!$this->wRecv("220"))return false; //INIT
+        $this->boundary = md5(time());
+		
+		if(!$this->wRecv("220"))return false; //INIT
         $this->Put("EHLO <".$this->host.">");
         if(!$this->wRecv("250"))return false; //HELLO
-
         if($this->use_tls)$this->startTLS();
-
         if($this->auth)
         {
             $this->Put("AUTH LOGIN");
@@ -38,21 +39,26 @@ class Smtp
             $this->Put(base64_encode($this->pass));
             if(!$this->wRecv("235"))return false; // authenticated
         }
-
+		
         $this->Put("MAIL FROM: <".$this->from.">");
         if(!$this->wRecv("250"))return false; // ok
         $this->Put("RCPT TO: <".$to.">");
         if(!$this->wRecv("250"))return false; // ok
-
         $this->Put("DATA");
         $this->Put($this->toHeader($to, $subject));
-        $this->Put($msg);
+		
+        $this->Put("--".$this->boundary);
+		$this->Put($this->Message_PlainText($msg));
+		$this->Put("--".$this->boundary);
+        $this->Put($this->Message_Html($msg));
+		$this->Put("--".$this->boundary."--");
+		
         $this->Put(".");
         if(!$this->wRecv("250"))return true; // ok  354 tbm eh true (<- 354 End data with <CR><LF>.<CR><LF>)
         $this->Close();
         return true;
     }
-
+	
     function startTLS()
     {
         if (!$this->TLS)return false;
@@ -68,7 +74,7 @@ class Smtp
         }
         return true;
     }
-
+	
     function toHeader($to, $subject)
     {
         $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
@@ -78,16 +84,16 @@ class Smtp
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
-        $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
+		$header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."\"\r\n";
         return $header;
     }
-
+	
     function Put($value)
     {
         if($this->debug)echo "-> ".$value."\x0D\x0A";
         return fputs($this->conn, $value."\r\n");
     }
-
+	
     function wRecv($cod)
     {
         $ret = false;
@@ -111,7 +117,7 @@ class Smtp
         }
         return $ret;
     }
-
+	
     function Close()
     {
         while (!feof ($this->conn))
@@ -124,12 +130,38 @@ class Smtp
         $this->Put("QUIT");
         return fclose($this->conn);
     }
+	
+	function Message_PlainText($message){
+		$content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
+		$content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
+		return $content;
+	}
+	
+	function Message_Html($message){
+		$content  = "Content-Type: Text/HTML; charset=UTF-8\r\n\r\n";
+		if (strpos($message,'<html') !== false){
+			$content .= $message."\r\n";
+		}else{
+			$content .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>'.$this->name.'</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body style="margin: 0; padding: 0;">
+<table border="0" cellpadding="0" cellspacing="0"><tr><td>'.$message.'</td></tr></table>
+</body>
+</html>
+';
+		}
+		return $content;
+	}
 }
 
 function send_mail($to, $subject, $msg)
 {
     $smtp = new Smtp();
-
     //Server
     $smtp->conn = @fsockopen($smtp->serv, 25, $errno, $errstr, 5);
     if($smtp->conn)
@@ -142,7 +174,6 @@ function send_mail($to, $subject, $msg)
             return true;
         }
     }
-
     //If server down
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
     $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
@@ -154,6 +185,5 @@ function send_mail($to, $subject, $msg)
     @mail($to, $subject, $msg, $header);
     return false;
 }
-
 //send_mail("mytestmail@gmail.com", "subject", "message");
 ?>
