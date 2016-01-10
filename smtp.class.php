@@ -65,7 +65,7 @@ class Smtp
         $this->Put("--".$this->boundary."--");
     
         $this->Put(".");
-        if(!$this->wRecv("250"))return true; // ok  354 tbm eh true (<- 354 End data with <CR><LF>.<CR><LF>)
+        if(!$this->wRecv("250"))return true; // ok (<- 354 End data with <CR><LF>.<CR><LF>)
         $this->Close();
         return true;
     }
@@ -86,7 +86,7 @@ class Smtp
         return true;
     }
 	
-	function serverHostname()
+    function serverHostname()
     {
         $result = 'localhost.localdomain';
         if (isset($_SERVER) and array_key_exists('SERVER_NAME', $_SERVER) and !empty($_SERVER['SERVER_NAME'])) {
@@ -101,7 +101,7 @@ class Smtp
   
     function toHeader($to, $subject)
     {
-        $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
+        $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
         $header .= "From: \"{$this->name}\" <".$this->from.">\r\n";
         $header .= "To: <".$to.">\r\n";
         $header .= "Subject: ".mb_encode_mimeheader($subject,"UTF-8")."\r\n";
@@ -200,7 +200,7 @@ function send_mail($to, $subject, $msg)
     }
     //If server down
     if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
-    $header = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
+    $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
     $header .= "From: \"{$smtp->name}\" <".$smtp->from.">\n";
     $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
     $header .= "MIME-Version: 1.0\r\n";
