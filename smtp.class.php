@@ -30,9 +30,17 @@ class Smtp
         $this->boundary = md5(time());
     
         if(!$this->wRecv("220"))return false; //INIT
-        $this->Put("EHLO <".$this->host.">");
+        
+        $this->Put("EHLO ".$this->serverHostname());
         if(!$this->wRecv("250"))return false; //HELLO
-        if($this->use_tls)$this->startTLS();
+        
+        if($this->use_tls)
+        {
+          $this->startTLS();
+          $this->Put("EHLO ".$this->serverHostname());
+          if(!$this->wRecv("250"))return false; //HELLO
+        }
+        
         if($this->auth)
         {
             $this->Put("AUTH LOGIN");
@@ -76,6 +84,19 @@ class Smtp
             return false;
         }
         return true;
+    }
+	
+	function serverHostname()
+    {
+        $result = 'localhost.localdomain';
+        if (isset($_SERVER) and array_key_exists('SERVER_NAME', $_SERVER) and !empty($_SERVER['SERVER_NAME'])) {
+            $result = $_SERVER['SERVER_NAME'];
+        } elseif (function_exists('gethostname') && gethostname() !== false) {
+            $result = gethostname();
+        } elseif (php_uname('n') !== false) {
+            $result = php_uname('n');
+        }
+        return $result;
     }
   
     function toHeader($to, $subject)
