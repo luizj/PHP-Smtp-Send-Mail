@@ -16,7 +16,7 @@ class Smtp
 
     //Addons
     var $debug = false;
-    var $use_tls = false;
+    var $use_tls = true;
     
     //Don't touch
     var $conn;
@@ -34,11 +34,11 @@ class Smtp
         $this->Put("EHLO ".$this->serverHostname());
         if(!$this->wRecv("250"))return false; //HELLO
         
-        if($this->use_tls)
+        if($this->use_tls && extension_loaded('openssl'))
         {
-          $this->startTLS();
-          $this->Put("EHLO ".$this->serverHostname());
-          if(!$this->wRecv("250"))return false; //HELLO
+            $this->startTLS();
+            $this->Put("EHLO ".$this->serverHostname());
+            if(!$this->wRecv("250"))return false; //HELLO
         }
         
         if($this->auth)
@@ -104,7 +104,13 @@ class Smtp
         $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
         $header .= "From: \"{$this->name}\" <".$this->from.">\r\n";
         $header .= "To: <".$to.">\r\n";
-        $header .= "Subject: ".mb_encode_mimeheader($subject,"UTF-8")."\r\n";
+        
+        if(function_exists('mb_encode_mimeheader')){
+        	$header .= "Subject: ".mb_encode_mimeheader($subject,"UTF-8")."\r\n";
+    	}else{
+        	$header .= "Subject: =?UTF-8?B?".base64_encode($subject)."?=\r\n";
+        }
+        
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
