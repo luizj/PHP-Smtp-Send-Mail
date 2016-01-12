@@ -24,6 +24,7 @@ class Smtp
     var $auth = false;
     var $TLS = false;
     var $boundary;
+    var $attachment = array();
   
     function Send($to, $subject, $msg)
     {
@@ -56,11 +57,9 @@ class Smtp
         $this->Put("DATA");
         $this->Put($this->toHeader($to, $subject));
     
-        $this->Put("--".$this->boundary);
-        $this->Put($this->Message_PlainText($msg));
-        $this->Put("--".$this->boundary);
-        $this->Put($this->Message_Html($msg));
-        $this->Put("--".$this->boundary."--");
+        $this->Message_PlainText($msg);
+        $this->Message_Html($msg);
+        $this->setAttachment();
     
         $this->Put(".");
         if(!$this->wRecv("250"))return true; // ok (<- 354 End data with <CR><LF>.<CR><LF>)
@@ -118,7 +117,12 @@ class Smtp
         $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
-        $header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."\"\r\n";
+        if(sizeof($this->attachment) > 0){
+            $header .= "Content-Type: multipart/mixed; boundary=\"".$this->boundary."\"\r\n\r\n";
+            $header .= "--".$this->boundary."\r\n";
+        }else{
+            $header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."_\"\r\n";
+        }
         return $header;
     }
   
@@ -165,18 +169,20 @@ class Smtp
         return fclose($this->conn);
     }
   
-  function Message_PlainText($message){
-    $content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
-    $content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
-    return $content;
-  }
-  
-  function Message_Html($message){
-    $content  = "Content-Type: Text/HTML; charset=UTF-8\r\n\r\n";
-    if (strpos($message,'<html') !== false){
-      $content .= $message."\r\n";
-    }else{
-      $content .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    function Message_PlainText($message){
+        $this->Put("--".$this->boundary."_");
+        $content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
+        $content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
+        $this->Put($content);
+    }
+
+    function Message_Html($message){
+        $this->Put("--".$this->boundary."_");
+        $content  = "Content-Type: Text/HTML; charset=UTF-8\r\n\r\n";
+        if (strpos($message,'<html') !== false){
+            $content .= $message."\r\n";
+        }else{
+            $content .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -188,15 +194,28 @@ class Smtp
 </body>
 </html>
 ';
+        }
+        $this->Put($content);
+        $this->Put("--".$this->boundary."_--");
     }
-    return $content;
-  }
+
+    function setAttachment(){
+        if(sizeof($this->attachment) == 0)return;
+        $this->Put("\r\n--".$this->boundary);
+        $content  = "Content-Type: application/pdf; name=\"".$this->attachment[0][0]."\"\r\n";
+        $content .= "Content-Disposition: attachment; filename=\"".$this->attachment[0][0]."\"\r\n";
+        $content .= "Content-Transfer-Encoding: base64\r\n\r\n";
+        $content .= chunk_split(base64_encode($this->attachment[0][1]));
+        $this->Put($content);
+        $this->Put("--".$this->boundary."--");
+    }
 }
 
-function send_mail($to, $subject, $msg)
+function send_mail($to, $subject, $msg, $attachment=array())
 {
     $smtp = new Smtp();
-    //Server
+    $smtp->attachment = $attachment;
+    
     $smtp->conn = @fsockopen($smtp->serv, 25, $errno, $errstr, 5);
     if($smtp->conn)
     {
@@ -208,16 +227,9 @@ function send_mail($to, $subject, $msg)
             return true;
         }
     }
-    //If server down
-    if($smtp->debug)echo "Connect Mail()"."\x0D\x0A";
-    $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($smtp->from,'@') ."> \r\n";
-    $header .= "From: \"".$smtp->name."\" <".$smtp->from.">\n";
-    $header .= "Date: ". date('D, d M Y H:i:s O') ."\r\n";
-    $header .= "MIME-Version: 1.0\r\n";
-    $header .= "X-Mailer: PHPMail\r\n";
-    $header .= "Content-Type: Text/HTML; charset=UTF-8\r\n";
-    @mail($to, $subject, $msg, $header);
     return false;
 }
 //send_mail("mytestmail@gmail.com", "subject", "message");
+//or
+//send_mail("mytestmail@gmail.com", "subject", "message", array(array("file.jpg","binary_of_jpg")));
 ?>
