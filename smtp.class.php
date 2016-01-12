@@ -34,11 +34,9 @@ class Smtp
         $this->Put("EHLO ".$this->serverHostname());
         if(!$this->wRecv("250"))return false; //HELLO
         
-        if($this->use_tls && extension_loaded('openssl'))
+        if($this->use_tls && $this->TLS && extension_loaded('openssl'))
         {
             $this->startTLS();
-            $this->Put("EHLO ".$this->serverHostname());
-            if(!$this->wRecv("250"))return false; //HELLO
         }
         
         if($this->auth)
@@ -72,9 +70,9 @@ class Smtp
   
     function startTLS()
     {
-        if (!$this->TLS)return false;
         $this->Put("STARTTLS");
         if(!$this->wRecv("220"))return false; //HELLO
+
         // Begin encrypted connection
         if (!stream_socket_enable_crypto(
             $this->conn,
@@ -83,6 +81,9 @@ class Smtp
         )){
             return false;
         }
+
+        $this->Put("EHLO ".$this->serverHostname());
+        if(!$this->wRecv("250"))return false; //HELLO
         return true;
     }
 	
