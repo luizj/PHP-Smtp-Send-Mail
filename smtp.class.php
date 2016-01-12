@@ -118,11 +118,12 @@ class Smtp
         $header .= "MIME-Version: 1.0\r\n";
         $header .= "X-Mailer: PHPMail\r\n";
         if(sizeof($this->attachment) > 0){
-            $header .= "Content-Type: multipart/mixed; boundary=\"".$this->boundary."\"\r\n\r\n";
+            $header .= "Content-Type: multipart/mixed; boundary=\"".$this->boundary."_\"\r\n\r\n";
             $header .= "--".$this->boundary."\r\n";
-        }else{
-            $header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."_\"\r\n";
         }
+        
+        $header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."\"\r\n";
+        
         return $header;
     }
   
@@ -170,14 +171,14 @@ class Smtp
     }
   
     function Message_PlainText($message){
-        $this->Put("--".$this->boundary."_");
+        $this->Put("--".$this->boundary);
         $content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
         $content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
         $this->Put($content);
     }
 
     function Message_Html($message){
-        $this->Put("--".$this->boundary."_");
+        $this->Put("--".$this->boundary);
         $content  = "Content-Type: Text/HTML; charset=UTF-8\r\n\r\n";
         if (strpos($message,'<html') !== false){
             $content .= $message."\r\n";
@@ -196,18 +197,18 @@ class Smtp
 ';
         }
         $this->Put($content);
-        $this->Put("--".$this->boundary."_--");
+        $this->Put("--".$this->boundary."--");
     }
 
     function setAttachment(){
         if(sizeof($this->attachment) == 0)return;
-        $this->Put("\r\n--".$this->boundary);
+        $this->Put("\r\n--".$this->boundary."_");
         $content  = "Content-Type: application/pdf; name=\"".$this->attachment[0][0]."\"\r\n";
         $content .= "Content-Disposition: attachment; filename=\"".$this->attachment[0][0]."\"\r\n";
         $content .= "Content-Transfer-Encoding: base64\r\n\r\n";
         $content .= chunk_split(base64_encode($this->attachment[0][1]));
         $this->Put($content);
-        $this->Put("--".$this->boundary."--");
+        $this->Put("--".$this->boundary."_--");
     }
 }
 
