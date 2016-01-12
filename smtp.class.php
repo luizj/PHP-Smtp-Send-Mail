@@ -119,7 +119,7 @@ class Smtp
         $header .= "X-Mailer: PHPMail\r\n";
         if(sizeof($this->attachment) > 0){
             $header .= "Content-Type: multipart/mixed; boundary=\"".$this->boundary."_\"\r\n\r\n";
-            $header .= "--".$this->boundary."\r\n";
+            $header .= "--".$this->boundary."_\r\n";
         }
         
         $header .= "Content-Type: multipart/alternative; boundary=\"".$this->boundary."\"\r\n";
