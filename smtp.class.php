@@ -98,7 +98,7 @@ class Smtp
             $result = php_uname('n');
         }
         if(filter_var($result, FILTER_VALIDATE_IP)) {
-            $result = $this->serv;
+            $result = "[".$result."]";
         }
         return $result;
     }
