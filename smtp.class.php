@@ -8,6 +8,7 @@ set_time_limit(0);
 class Smtp
 {
     var $serv  = "smtp.mail1.com";
+    var $port  = "25";
  
     var $name  = "MyServiceName";
     var $from  = "your@mail.com";
@@ -217,7 +218,7 @@ function send_mail($to, $subject, $msg, $attachment=array())
     $smtp = new Smtp();
     $smtp->attachment = $attachment;
     
-    $smtp->conn = @fsockopen($smtp->serv, 25, $errno, $errstr, 5);
+    $smtp->conn = @fsockopen($smtp->serv, $smtp->port, $errno, $errstr, 5);
     if($smtp->conn)
     {
         if($smtp->debug)echo "Connect 1"."\x0D\x0A";
@@ -230,7 +231,7 @@ function send_mail($to, $subject, $msg, $attachment=array())
     }
     return false;
 }
-//send_mail("mytestmail@gmail.com", "subject", "message");
+//send_mail("mytestmail@mywebsite.com", "subject", "message");
 //or
-//send_mail("mytestmail@gmail.com", "subject", "message", array(array("file.jpg","binary_of_jpg")));
+//send_mail("mytestmail@mywebsite.com", "subject", "message", array(array("file.jpg","binary_of_jpg")));
 ?>
