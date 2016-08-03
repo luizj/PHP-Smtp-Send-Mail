@@ -126,7 +126,7 @@ class Smtp
         $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
         $header .= "From: \"".$this->name."\" <".$this->from.">\r\n";
         if($this->reply_to != ""){
-        	$header .= "Reply-To: <".$this-reply_to.">\r\n";
+        	$header .= "Reply-To: <".$this->reply_to.">\r\n";
         }
         $header .= "To: <".$to.">\r\n";
         
@@ -234,7 +234,7 @@ class Smtp
     }
 }
 
-function send_mail($to, $subject, $msg, $attachment=array(), $reply_to)
+function send_mail($to, $subject, $msg, $attachment=array(), $reply_to="")
 {
     $smtp = new Smtp();
     $smtp->attachment = $attachment;
