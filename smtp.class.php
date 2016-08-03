@@ -1,8 +1,7 @@
-<?
+<?php
 /*
  * https://github.com/luizj/PHP-Smtp-Send-Mail/blob/master/smtp.class.php
  */
-error_reporting(15);
 set_time_limit(0);
 
 class Smtp
@@ -15,9 +14,9 @@ class Smtp
     var $user  = "your@mail.com";
     var $pass  = "pass";
 
-    //Addons
+    //Addons (Optional)
     var $debug = false;
-    var $use_tls = true;
+    var $use_tls = false;
     
     //Don't touch
     var $conn;
@@ -26,9 +25,24 @@ class Smtp
     var $TLS = false;
     var $boundary;
     var $attachment = array();
+    var $reply_to;
   
+    function __construct()
+    {
+	$this->conn = @fsockopen($this->serv, $this->port, $errno, $errstr, 5);
+    }
+    
     function Send($to, $subject, $msg)
     {
+    	if($this->conn)
+    	{
+        	if($this->debug)echo "Connection OK"."\x0D\x0A";
+            
+        }else{
+        	if($this->debug)echo "Connection Fail"."\x0D\x0A";
+        	return false;
+        }
+
         $this->boundary = md5(time());
     
         if(!$this->wRecv("220"))return false; //INIT
@@ -72,8 +86,12 @@ class Smtp
     {
         $this->Put("STARTTLS");
         if(!$this->wRecv("220"))return false; //HELLO
+        
+        stream_context_set_option($this->conn, 'ssl', 'verify_host', false);
+	stream_context_set_option($this->conn, 'ssl', 'verify_peer', false);
+	stream_context_set_option($this->conn, 'ssl', 'allow_self_signed', true);
 
-        // Begin encrypted connection
+	// Begin encrypted connection
         if (!stream_socket_enable_crypto(
             $this->conn,
             true,
@@ -107,6 +125,9 @@ class Smtp
     {
         $header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
         $header .= "From: \"".$this->name."\" <".$this->from.">\r\n";
+        if($this->reply_to != ""){
+        	$header .= "Reply-To: <".$this-reply_to.">\r\n";
+        }
         $header .= "To: <".$to.">\r\n";
         
         if(function_exists('mb_encode_mimeheader')){
@@ -213,23 +234,12 @@ class Smtp
     }
 }
 
-function send_mail($to, $subject, $msg, $attachment=array())
+function send_mail($to, $subject, $msg, $attachment=array(), $reply_to)
 {
     $smtp = new Smtp();
     $smtp->attachment = $attachment;
-    
-    $smtp->conn = @fsockopen($smtp->serv, $smtp->port, $errno, $errstr, 5);
-    if($smtp->conn)
-    {
-        if($smtp->debug)echo "Connect 1"."\x0D\x0A";
-        if(!$smtp->Send($to, $subject, $msg))
-        {
-            if($smtp->debug)echo "1 Fail"."\x0D\x0A";
-        }else{
-            return true;
-        }
-    }
-    return false;
+    $smtp->reply_to = $reply_to;
+    return $smtp->Send($to, $subject, $msg);
 }
 //send_mail("mytestmail@mywebsite.com", "subject", "message");
 //or
