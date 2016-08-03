@@ -170,6 +170,7 @@ class Smtp
             {
                 if($cod == "250"){//Addons
                 if(substr($c,4, 10) == "AUTH LOGIN")$this->auth = true;
+                if(substr($c,4, 10) == "AUTH PLAIN")$this->auth = true;
                 if(substr($c,4, 8)  == "STARTTLS")  $this->TLS  = true;
             }
             if($cod == "220"){//EHLO
