@@ -17,7 +17,8 @@ class Smtp
     //Addons (Optional)
     var $debug = false;
     var $use_tls = false;
-    var $cabundle = '';   // Example /etc/ssl/cacert.pem
+    var $ssl_cabundle = '';   // Example /etc/ssl/cacert.pem
+    var $ssl_passphrase = '';
     
     //Don't touch
     var $conn;
@@ -92,6 +93,7 @@ class Smtp
 	stream_context_set_option($this->conn, 'ssl', 'verify_peer', false);
 	stream_context_set_option($this->conn, 'ssl', 'allow_self_signed', true);
 	if($this->cabundle!="")stream_context_set_option($this->conn, 'ssl', 'local_cert', $this->cabundle);
+	if($this->passphrase!="")stream_context_set_option($this->conn, 'ssl', 'passphrase', $this->passphrase);
 
 	// Begin encrypted connection
         if (!stream_socket_enable_crypto(
