@@ -74,7 +74,8 @@ class Smtp
         $this->Put("DATA");
         $this->Put($this->toHeader($to, $subject));
     
-        $this->Message_PlainText($msg);
+        $msg = $this->minimize_output($msg);
+	$this->Message_PlainText($msg);
         $this->Message_Html($msg);
         $this->setAttachment();
     
@@ -184,6 +185,19 @@ class Smtp
         return $ret;
     }
   
+    function Close()
+    {
+        while (!feof ($this->conn))
+        {
+            echo "<- ".fgets($this->conn) . "\x0D";
+            $c = fgets($this->conn);
+            if($this->debug)echo "<- ".$c;
+            if(substr($c,3, 1) != "-"){return;}
+        }
+        $this->Put("QUIT");
+        return fclose($this->conn);
+    }
+
     function Close()
     {
         while (!feof ($this->conn))
