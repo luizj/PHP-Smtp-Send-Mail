@@ -197,19 +197,21 @@ class Smtp
         $this->Put("QUIT");
         return fclose($this->conn);
     }
-
-    function Close()
-    {
-        while (!feof ($this->conn))
-        {
-            echo "<- ".fgets($this->conn) . "\x0D";
-            $c = fgets($this->conn);
-            if($this->debug)echo "<- ".$c;
-            if(substr($c,3, 1) != "-"){return;}
-        }
-        $this->Put("QUIT");
-        return fclose($this->conn);
-    }
+	
+	function minimize_output($b){//Minimiza o Html
+		$s = array(
+			'/\>[^\S ]+/su',  // strip whitespaces after tags, except space
+			'/[^\S ]+\</su',  // strip whitespaces before tags, except space
+			'/(\s)+/su'       // shorten multiple whitespace sequences
+		);
+		$r = array(
+			'>',
+			'<',
+			'\\1'
+		);
+		$b = preg_replace($s, $r, $b);
+		return $b;
+	}
   
     function Message_PlainText($message){
         $this->Put("--".$this->boundary);
