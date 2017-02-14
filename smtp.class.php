@@ -28,14 +28,10 @@ class Smtp
     var $boundary;
     var $attachment = array();
     var $reply_to;
-  
-    function __construct()
-    {
-	$this->conn = @fsockopen($this->serv, $this->port, $errno, $errstr, 5);
-    }
     
     function Send($to, $subject, $msg)
     {
+	$this->conn = @fsockopen($this->serv, $this->port, $errno, $errstr, 5);
     	if($this->conn)
     	{
         	if($this->debug)echo "Connection OK"."\x0D\x0A";
