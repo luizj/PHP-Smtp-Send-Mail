@@ -79,7 +79,7 @@ class Smtp
 		$this->Close();
 		return true;
 	}
-  
+	
 	function startTLS()
 	{
 		$this->Put("STARTTLS");
@@ -120,7 +120,7 @@ class Smtp
 		}
 		return $result;
 	}
-  
+	
 	function toHeader($to, $subject)
 	{
 		$header  = "Message-Id: <". date('YmdHis').".". md5(microtime()). strrchr($this->from,'@') ."> \r\n";
@@ -148,13 +148,13 @@ class Smtp
 
 		return $header;
 	}
-  
+	
 	function Put($value)
 	{
 		if($this->debug)echo "-> ".$value."\x0D\x0A";
 		return fputs($this->conn, $value."\r\n");
 	}
-  
+	
 	function wRecv($cod)
 	{
 		$ret = false;
@@ -179,7 +179,7 @@ class Smtp
 		}
 		return $ret;
 	}
-  
+	
 	function Close()
 	{
 		while (!feof ($this->conn))
@@ -207,14 +207,14 @@ class Smtp
 		$b = preg_replace($s, $r, $b);
 		return $b;
 	}
-  
+	
 	function Message_PlainText($message){
 		$this->Put("--".$this->boundary);
 		$content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
 		$content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
 		$this->Put($content);
 	}
-
+	
 	function Message_Html($message){
 		$this->Put("--".$this->boundary);
 		$content  = "Content-Type: Text/HTML; charset=UTF-8\r\n\r\n";
@@ -237,7 +237,7 @@ class Smtp
 		$this->Put($content);
 		$this->Put("--".$this->boundary."--");
 	}
-
+	
 	function setAttachment(){
 		for($i=0; $i<sizeof($this->attachment);$i++){
 			$this->Put("\r\n--".$this->boundary."_");
