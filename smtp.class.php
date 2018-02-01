@@ -209,6 +209,7 @@ class Smtp
 	}
 	
 	function Message_PlainText($message){
+		$message = preg_replace('/(<(script|style)\b[^>]*>).*?(<\/\2>)/s', "$1$3", $message);
 		$this->Put("--".$this->boundary);
 		$content  = "Content-Type: Text/Plain; charset=UTF-8\r\n\r\n";
 		$content .= strip_tags(preg_replace('#<br\s*/?>#i', chr(13).chr(10), $message))."\r\n";
@@ -251,11 +252,11 @@ class Smtp
 	}
 	
 	function _mime_types($filename){
-		$qpos = strpos($filename,'?');
-		if(false!==$qpos)$filename=substr($filename,0,$qpos);
-		$exp = explode(".",$filename);
+		$qpos = strpos($filename, '?');
+		if(false !== $qpos)$filename = substr($filename, 0, $qpos);
+		$exp = explode(".", $filename);
 		$ext = strtolower(end($exp));
-		$mimes = [
+		$mimes = array(
 			'xl' => 'application/excel',
 			'js' => 'application/javascript',
 			'hqx' => 'application/mac-binhex40',
@@ -367,8 +368,8 @@ class Smtp
 			'movie' => 'video/x-sgi-movie',
 			'webm' => 'video/webm',
 			'mkv' => 'video/x-matroska',
-		];
-		if(array_key_exists($ext,$mimes))return $mimes[$ext];
+		);
+		if(array_key_exists($ext, $mimes))return $mimes[$ext];
 		return 'application/octet-stream';
 	}
 }
