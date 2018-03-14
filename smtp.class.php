@@ -377,7 +377,7 @@ class Smtp
 function send_mail($to, $subject, $msg, $attachment=array(), $reply_to="")
 {
 	$smtp = new Smtp();
-	$smtp->attachment = $attachment;
+	$smtp->attachment = is_array($attachment)?$attachment:array();
 	$smtp->reply_to = $reply_to;
 	return $smtp->Send($to, $subject, $msg);
 }
