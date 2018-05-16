@@ -152,7 +152,7 @@ class Smtp
 	function Put($value)
 	{
 		if($this->debug)echo "-> ".$value."\x0D\x0A";
-		return fputs($this->conn, $value."\r\n");
+		return fputs($this->conn, $value."\r\n", strlen($value."\r\n"));
 	}
 	
 	function wRecv($cod)
