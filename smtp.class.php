@@ -64,10 +64,17 @@ class Smtp
     
 		$this->Put("MAIL FROM: <".$this->from.">");
 		if(!$this->wRecv("250"))return false; // ok
-		$this->Put("RCPT TO: <".$to.">");
+		
+		$tox = explode(",",$to);
+        	$multiple_to = "";
+		for($i=0; $i<sizeof($tox); $i++){
+			if($i>0)$multiple_to .= ",";
+			$multiple_to .= "<".$tox[$i].">";
+		}
+		$this->Put("RCPT TO: ".$multiple_to);
 		if(!$this->wRecv("250"))return false; // ok
 		$this->Put("DATA");
-		$this->Put($this->toHeader($to, $subject));
+		$this->Put($this->toHeader($multiple_to, $subject));
 
 		$msg = $this->minimize_output($msg);
 		$this->Message_PlainText($msg);
@@ -128,7 +135,7 @@ class Smtp
 		if($this->reply_to != ""){
 			$header .= "Reply-To: <".$this->reply_to.">\r\n";
 		}
-		$header .= "To: <".$to.">\r\n";
+		$header .= "To: ".$to."\r\n";
 
 		if(function_exists('mb_encode_mimeheader')){
 			$header .= "Subject: ".mb_encode_mimeheader($subject,"UTF-8")."\r\n";
