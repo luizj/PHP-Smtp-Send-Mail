@@ -70,9 +70,9 @@ class Smtp
 		for($i=0; $i<sizeof($tox); $i++){
 			if($i>0)$multiple_to .= ",";
 			$multiple_to .= "<".$tox[$i].">";
+			$this->Put("RCPT TO: <".$tox[$i].">");
+			if(!$this->wRecv("250"))return false; // ok
 		}
-		$this->Put("RCPT TO: ".$multiple_to);
-		if(!$this->wRecv("250"))return false; // ok
 		$this->Put("DATA");
 		$this->Put($this->toHeader($multiple_to, $subject));
 
