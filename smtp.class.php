@@ -94,6 +94,7 @@ class Smtp
 
 		stream_context_set_option($this->conn, 'ssl', 'verify_host', false);
 		stream_context_set_option($this->conn, 'ssl', 'verify_peer', false);
+		stream_context_set_option($this->conn, 'ssl', 'verify_peer_name', false);
 		stream_context_set_option($this->conn, 'ssl', 'allow_self_signed', true);
 		if($this->ssl_cabundle!="")stream_context_set_option($this->conn, 'ssl', 'local_cert', $this->ssl_cabundle);
 		if($this->ssl_passphrase!="")stream_context_set_option($this->conn, 'ssl', 'passphrase', $this->ssl_passphrase);
