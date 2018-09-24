@@ -79,6 +79,7 @@ class Smtp
 			if(!$this->wRecv("250"))return false; // ok
 		}
 		$this->Put("DATA");
+		if(!$this->wRecv("354"))return false; // ok
 		$this->Put($this->toHeader($multiple_to, $subject));
 
 		$msg = $this->minimize_output($msg);
@@ -87,7 +88,7 @@ class Smtp
 		$this->setAttachment();
 
 		$this->Put(".");
-		while($this->wRecv("250")!=true){} // ok (<- 354 End data with <CR><LF>.<CR><LF>)
+		if(!$this->wRecv("250"))return false; // ok (<- 354 End data with <CR><LF>.<CR><LF>)
 		$this->Close();
 		return true;
 	}
