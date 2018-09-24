@@ -28,16 +28,21 @@ class Smtp
 	var $boundary;
 	var $attachment = array();
 	var $reply_to;
+	var $timeout = 15;
     
 	function Send($to, $subject, $msg)
 	{
-		$this->conn = @fsockopen($this->serv, $this->port, $errno, $errstr, 5);
+		$this->conn = @fsockopen($this->serv, $this->port, $errno, $errstr, $this->timeout);
 		if($this->conn)
 		{
 			if($this->debug)echo "Connection OK"."\x0D\x0A";
 		}else{
 			if($this->debug)echo "Connection Fail"."\x0D\x0A";
 			return false;
+		}
+		
+		if(substr(PHP_OS,0,3) != 'WIN'){
+			stream_set_timeout($this->conn, $this->timeout, 0);
 		}
 
 		$this->boundary = md5(time());
@@ -82,7 +87,7 @@ class Smtp
 		$this->setAttachment();
 
 		$this->Put(".");
-		if(!$this->wRecv("250"))return true; // ok (<- 354 End data with <CR><LF>.<CR><LF>)
+		while($this->wRecv("250")!=true){} // ok (<- 354 End data with <CR><LF>.<CR><LF>)
 		$this->Close();
 		return true;
 	}
@@ -169,6 +174,7 @@ class Smtp
 		while(!feof($this->conn))
 		{
 			$c = fgets($this->conn);
+			if(!$c || $c=="")return $ret;
 			if($this->debug)echo "<- ".$c;
 			if(substr($c,0, 3) == $cod)
 			{
@@ -190,13 +196,6 @@ class Smtp
 	
 	function Close()
 	{
-		while (!feof ($this->conn))
-		{
-			echo "<- ".fgets($this->conn) . "\x0D";
-			$c = fgets($this->conn);
-			if($this->debug)echo "<- ".$c;
-			if(substr($c,3, 1) != "-"){return;}
-		}
 		$this->Put("QUIT");
 		return fclose($this->conn);
 	}
