@@ -213,6 +213,7 @@ class Smtp
 			'\\1'
 		);
 		$b = preg_replace($s, $r, $b);
+		$b = str_replace("\n", "\r\n", wordwrap($b, 996, "\n", true));
 		return $b;
 	}
 	
