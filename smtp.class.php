@@ -7,7 +7,7 @@ set_time_limit(0);
 class Smtp
 {
 	var $serv  = "smtp.mail1.com";
-	var $port  = "25";
+	var $port  = "465"; // 465 or 587
 
 	var $name  = "MyServiceName";
 	var $from  = "your@mail.com";
@@ -57,15 +57,30 @@ class Smtp
 			$this->startTLS();
 		}
         
-		if($this->auth)
-		{
-			$this->Put("AUTH LOGIN");
-			if(!$this->wRecv("334"))return false; // ok
-			$this->Put(base64_encode($this->user));
-			if(!$this->wRecv("334"))return false; // ok
-			$this->Put(base64_encode($this->pass));
-			if(!$this->wRecv("235"))return false; // authenticated
-		}
+	        if($this->auth)
+	        {
+			switch($this->auth){
+				case 'PLAIN':		
+					$this->Put("AUTH PLAIN");
+					if(!$this->wRecv("334"))return false; // ok
+					$this->Put(base64_encode("\0".$this->user."\0".$this->pass));
+					if(!$this->wRecv("235"))return false; // authenticated
+					break;
+				
+				case 'LOGIN':
+					$this->Put("AUTH LOGIN");
+					if(!$this->wRecv("334"))return false; // ok
+					$this->Put(base64_encode($this->user));
+					if(!$this->wRecv("334"))return false; // ok
+					$this->Put(base64_encode($this->pass));
+					if(!$this->wRecv("235"))return false; // authenticated
+					break;
+				
+				/*case 'CRAM-MD5':
+				case 'XOAUTH2':
+					break;*/
+			}
+	        }
     
 		$this->Put("MAIL FROM: <".$this->from.">");
 		if(!$this->wRecv("250"))return false; // ok
@@ -179,16 +194,18 @@ class Smtp
 			if($this->debug)echo "<- ".$c;
 			if(substr($c,0, 3) == $cod)
 			{
-				if($cod == "250"){//Addons
-					if(substr($c,4, 10) == "AUTH LOGIN")$this->auth = true;
-					if(substr($c,4, 10) == "AUTH PLAIN")$this->auth = true;
-					if(substr($c,4, 8)  == "STARTTLS")  $this->TLS  = true;
+				//AUTH
+				if(substr($c, 4, 4) == "AUTH"){
+					$authtypes =  explode(" ", substr($c, 9));
+					foreach([/*'CRAM-MD5','XOAUTH2',*/'LOGIN','PLAIN'] as $method){
+						if(in_array($method, $authtypes, true)) {
+							$this->auth = $method;
+							break;
+						}
+					}
 				}
-				if($cod == "220"){//EHLO
-					$exp = explode(" ", $c);
-					$this->host = trim($exp[1]);
-				}
-				$ret = true;
+				//TLS
+				if(substr($c,4, 8)  == "STARTTLS")$this->TLS = true;
 			}
 			if(substr($c,3, 1) != "-")return $ret;
 		}
